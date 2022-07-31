@@ -26,16 +26,16 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
             
             if line.startswith("[Server thread/INFO]: Starting minecraft server"):
                 stats["server"]["last"] = msgtime
-                print(f"! start @ {msgtime}", file=sys.stderr)
+                print(f"! {msgtime} : start", file=sys.stderr)
             
             elif line == "[Server thread/INFO]: Closing Server":
                 stats["server"]["total"] += msgtime - stats["server"]["last"]
-                print(f"! stop  @ {msgtime} -> running count is {stats['server']['total']}", file=sys.stderr)
+                print(f"! {msgtime} : stop -> running count is {stats['server']['total']}", file=sys.stderr)
 
             elif re.match(r"^\[Server thread/INFO\]: [a-zA-Z0-9_]* joined the game$", line):
                 player = line[22:]
                 player = player[:player.index(" ")]
-                print(f"! joined:  '{player: <16}' @ {msgtime}")
+                print(f"! {msgtime} : joined:  '{player: <16}'")
                 if player not in stats["players"]: stats["players"][player] = {
                     "last": None, "playtime": timedelta(),
                     "deaths": 0, "commands": 0,
@@ -49,27 +49,27 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                 reason, player = player[player.index(" "):][18:], player[:player.index(" ")]
                 stats["players"][player]["playtime"] += msgtime - stats["players"][player]["last"]
                 stats["players"][player]["online"] = False
-                print(f"! left:    '{player: <16}', reason: '{reason}' @ {msgtime} -> running count is {stats['players'][player]['playtime']}")
+                print(f"! {msgtime} : left:    '{player: <16}', '{reason}' -> running count is {stats['players'][player]['playtime']}")
 
             elif re.match(r"^\[Server thread/INFO\]: [a-zA-Z0-9_]* (was|drowned|experienced|blew|hit|fell|went|walked|burned|discovered|froze|starved|suffocated|didn't|withered|died).*$", line):
                 line = line[22:]
                 player = line[:line.index(" ")]
                 reason = line[line.index(" ")+1:]
-                print(f"! death:   '{player: <16}' '{reason}' @ {msgtime}")
+                print(f"! {msgtime} : death:   '{player: <16}', '{reason}'")
                 stats["players"][player]["deaths"] += 1
 
             elif re.match(r"^\[Server thread/INFO\]: [a-zA-Z0-9_]* issued server command: .*$", line):
                 line = line[22:]
                 player = line[:line.index(" ")]
                 command = line[line.index(": ")+2:]
-                print(f"! command: '{player: <16}', '{command}' @ {msgtime}")
+                print(f"! {msgtime} : command: '{player: <16}', '{command}'")
                 stats["players"][player]["commands"] += 1
 
             elif re.match(r"^\[Async Chat Thread - #\d+/INFO\]: <", line):
                 line = line[line.index(": <")+3:]
                 player = line[:line.index("> ")]
                 content = line[line.index("> ")+2:]
-                print(f"! chatmsg: '{player: <16}', '{content}' @ {msgtime}")
+                print(f"! {msgtime} : chatmsg: '{player: <16}', '{content}'")
                 stats["players"][player]["messages"] += 1
                 
 
