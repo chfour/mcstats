@@ -44,7 +44,7 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                     if player not in stats["players"]: stats["players"][player] = {
                         "last": None, "playtime": timedelta(),
                         "deaths": 0, "commands": 0,
-                        "messages": 0
+                        "messages": 0, "advancements": 0
                     }
                     stats["players"][player]["last"] = msgtime
                     stats["players"][player]["online"] = True
@@ -71,6 +71,12 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                     print(f"! {msgtime} : command: '{player: <16}', '{command}'")
                     stats["players"][player]["commands"] += 1
 
+                elif re.match(r"^[a-zA-Z0-9_]* has made the advancement \[.*\]$", line):
+                    player = line[:line.index(" ")]
+                    advname = line[line.index(" [")+2:-1]
+                    print(f"! {msgtime} : adv:     '{player: <16}', '{advname}'")
+                    stats["players"][player]["advancements"] += 1
+
             # chatmsg
             elif re.match(r"^\[Async Chat Thread - #\d+/INFO\]: <", line):
                 line = line[line.index(": <")+3:]
@@ -85,3 +91,4 @@ print(f"Server:\n Total uptime: {stats['server']['total']}\nPlayers:")
 for p in stats["players"]:
     print(f" {p: <16} {stats['players'][p]['playtime']} total playtime, deaths: {stats['players'][p]['deaths']}")
     print(" "*18+f"messages sent: {stats['players'][p]['messages']: >5}, commands issued: {stats['players'][p]['commands']: >5}")
+    print(" "*18+f"advancements made: {stats['players'][p]['advancements']: >3}")
