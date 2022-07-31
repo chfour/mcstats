@@ -47,6 +47,12 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                 stats["players"][player]["online"] = False
                 print(f"! left:   '{player: <16}', reason: '{reason}' @ {msgtime} -> running count is {stats['players'][player]['playtime']}")
 
+            elif re.match(r"^\[Server thread/INFO\]: [a-zA-Z0-9_]* (was|drowned|experienced|blew|hit|fell|went|walked|burned|discovered|froze|starved|suffocated|didn't|withered|died).*", line):
+                line = line[22:]
+                player = line[:line.index(" ")]
+                reason = line[line.index(" ")+1:]
+                print(f"! death:  '{player: <16}' '{reason}' @ {msgtime}")
+
 #print(stats)
 print(f"Server:\n Total uptime: {stats['server']['total']}\nPlayers:")
 for p in stats["players"]:
