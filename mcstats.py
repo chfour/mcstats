@@ -35,8 +35,8 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
             elif re.match(r"^\[Server thread/INFO\]: [a-zA-Z0-9_]* joined the game$", line):
                 player = line[22:]
                 player = player[:player.index(" ")]
-                print(f"! joined: '{player: <16}' @ {msgtime}")
-                if player not in stats["players"]: stats["players"][player] = {"last": None, "playtime": timedelta(), "deaths": 0}
+                print(f"! joined:  '{player: <16}' @ {msgtime}")
+                if player not in stats["players"]: stats["players"][player] = {"last": None, "playtime": timedelta(), "deaths": 0, "commands": 0}
                 stats["players"][player]["last"] = msgtime
                 stats["players"][player]["online"] = True
 
@@ -45,17 +45,24 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                 reason, player = player[player.index(" "):][18:], player[:player.index(" ")]
                 stats["players"][player]["playtime"] += msgtime - stats["players"][player]["last"]
                 stats["players"][player]["online"] = False
-                print(f"! left:   '{player: <16}', reason: '{reason}' @ {msgtime} -> running count is {stats['players'][player]['playtime']}")
+                print(f"! left:    '{player: <16}', reason: '{reason}' @ {msgtime} -> running count is {stats['players'][player]['playtime']}")
 
-            elif re.match(r"^\[Server thread/INFO\]: [a-zA-Z0-9_]* (was|drowned|experienced|blew|hit|fell|went|walked|burned|discovered|froze|starved|suffocated|didn't|withered|died).*", line):
+            elif re.match(r"^\[Server thread/INFO\]: [a-zA-Z0-9_]* (was|drowned|experienced|blew|hit|fell|went|walked|burned|discovered|froze|starved|suffocated|didn't|withered|died).*$", line):
                 line = line[22:]
                 player = line[:line.index(" ")]
                 reason = line[line.index(" ")+1:]
-                print(f"! death:  '{player: <16}' '{reason}' @ {msgtime}")
-                if player not in stats["players"]: stats["players"][player] = {"last": None, "playtime": timedelta(), "deaths": 0}
+                print(f"! death:   '{player: <16}' '{reason}' @ {msgtime}")
                 stats["players"][player]["deaths"] += 1
+
+            elif re.match(r"^\[Server thread/INFO\]: [a-zA-Z0-9_]* issued server command: .*$", line):
+                line = line[22:]
+                player = line[:line.index(" ")]
+                command = line[line.index(": ")+2:]
+                print(f"! command: '{player: <16}', '{command}'")
+                stats["players"][player]["commands"] += 1
+                
 
 #print(stats)
 print(f"Server:\n Total uptime: {stats['server']['total']}\nPlayers:")
 for p in stats["players"]:
-    print(f" {p: <16}: {stats['players'][p]['playtime']} total playtime, {stats['players'][p]['deaths']} deaths")
+    print(f" {p: <16}: {stats['players'][p]['playtime']} total playtime, {stats['players'][p]['deaths']} deaths, {stats['players'][p]['commands']} command(s) issued")
