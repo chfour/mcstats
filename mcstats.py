@@ -31,4 +31,14 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                 stats["server"]["total"] += msgtime - stats["server"]["last"]
                 print(f"! stop  @ {msgtime} -> running count is {stats['server']['total']}", file=sys.stderr)
 
+            elif re.match(r"^\[Server thread/INFO\]: [a-zA-Z0-9_]* joined the game$", line):
+                player = line[22:]
+                player = player[:player.index(" ")]
+                print(f"! joined: '{player: <16}' @ {msgtime}")
+
+            elif re.match(r"^\[Server thread/INFO\]: [a-zA-Z0-9_]* lost connection: .*$", line):
+                player = line[22:]
+                reason, player = player[player.index(" "):][18:], player[:player.index(" ")]
+                print(f"! left:   '{player: <16}', reason: '{reason}' @ {msgtime}")
+
 print(stats)
