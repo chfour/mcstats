@@ -36,7 +36,11 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                 player = line[22:]
                 player = player[:player.index(" ")]
                 print(f"! joined:  '{player: <16}' @ {msgtime}")
-                if player not in stats["players"]: stats["players"][player] = {"last": None, "playtime": timedelta(), "deaths": 0, "commands": 0}
+                if player not in stats["players"]: stats["players"][player] = {
+                    "last": None, "playtime": timedelta(),
+                    "deaths": 0, "commands": 0,
+                    "messages": 0
+                }
                 stats["players"][player]["last"] = msgtime
                 stats["players"][player]["online"] = True
 
@@ -58,11 +62,18 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                 line = line[22:]
                 player = line[:line.index(" ")]
                 command = line[line.index(": ")+2:]
-                print(f"! command: '{player: <16}', '{command}'")
+                print(f"! command: '{player: <16}', '{command}' @ {msgtime}")
                 stats["players"][player]["commands"] += 1
+
+            elif re.match(r"^\[Async Chat Thread - #\d+/INFO\]: <", line):
+                line = line[line.index(": <")+3:]
+                player = line[:line.index("> ")]
+                content = line[line.index("> ")+2:]
+                print(f"! chatmsg: '{player: <16}', '{content}' @ {msgtime}")
+                stats["players"][player]["messages"] += 1
                 
 
 #print(stats)
 print(f"Server:\n Total uptime: {stats['server']['total']}\nPlayers:")
 for p in stats["players"]:
-    print(f" {p: <16}: {stats['players'][p]['playtime']} total playtime, {stats['players'][p]['deaths']} deaths, {stats['players'][p]['commands']} command(s) issued")
+    print(f" {p: <16}: {stats['players'][p]['playtime']} total playtime, {stats['players'][p]['deaths']} deaths, {stats['players'][p]['messages']} message(s) sent, {stats['players'][p]['commands']} command(s) issued")
