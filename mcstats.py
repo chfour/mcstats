@@ -36,7 +36,7 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                 player = line[22:]
                 player = player[:player.index(" ")]
                 print(f"! joined: '{player: <16}' @ {msgtime}")
-                if player not in stats["players"]: stats["players"][player] = {"last": None, "playtime": timedelta()}
+                if player not in stats["players"]: stats["players"][player] = {"last": None, "playtime": timedelta(), "deaths": 0}
                 stats["players"][player]["last"] = msgtime
                 stats["players"][player]["online"] = True
 
@@ -52,8 +52,10 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                 player = line[:line.index(" ")]
                 reason = line[line.index(" ")+1:]
                 print(f"! death:  '{player: <16}' '{reason}' @ {msgtime}")
+                if player not in stats["players"]: stats["players"][player] = {"last": None, "playtime": timedelta(), "deaths": 0}
+                stats["players"][player]["deaths"] += 1
 
 #print(stats)
 print(f"Server:\n Total uptime: {stats['server']['total']}\nPlayers:")
 for p in stats["players"]:
-    print(f" {p: <16}: {stats['players'][p]['playtime']}")
+    print(f" {p: <16}: {stats['players'][p]['playtime']} total playtime, {stats['players'][p]['deaths']} deaths")
