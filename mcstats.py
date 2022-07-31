@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 import glob, sys, os.path, locale, re
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 
 root_dir = sys.argv[1]
+stats = {
+    "server": {
+        "last": None,
+        "total": timedelta()
+    }
+}
 
 for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int(i) for i in n[:-4].split("-")]):
     filedate = datetime.strptime(logfile[:logfile.rindex("-")], "%Y-%m-%d")
@@ -16,7 +22,13 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
             if not re.match(r"^\[\d\d:\d\d:\d\d\] \[", line): continue
             msgtime = datetime.combine(filedate, datetime.strptime(line[:line.index(" ")], "[%H:%M:%S]").time())
             line = line[line.index(" ")+1:]
+            
             if line.startswith("[Server thread/INFO]: Starting minecraft server"):
+                stats["server"]["last"] = msgtime
                 print(f"! start @ {msgtime}", file=sys.stderr)
+            
             elif line == "[Server thread/INFO]: Closing Server":
-                print(f"! stop  @ {msgtime}", file=sys.stderr)
+                stats["server"]["total"] += msgtime - stats["server"]["last"]
+                print(f"! stop  @ {msgtime} -> running count is {stats['server']['total']}", file=sys.stderr)
+
+print(stats)
