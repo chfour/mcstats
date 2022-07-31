@@ -7,7 +7,8 @@ stats = {
     "server": {
         "last": None,
         "total": timedelta()
-    }
+    },
+    "players": {}
 }
 
 for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int(i) for i in n[:-4].split("-")]):
@@ -35,10 +36,15 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                 player = line[22:]
                 player = player[:player.index(" ")]
                 print(f"! joined: '{player: <16}' @ {msgtime}")
+                if player not in stats["players"]: stats["players"][player] = {"last": None, "playtime": timedelta()}
+                stats["players"][player]["last"] = msgtime
+                stats["players"][player]["online"] = True
 
             elif re.match(r"^\[Server thread/INFO\]: [a-zA-Z0-9_]* lost connection: .*$", line):
                 player = line[22:]
                 reason, player = player[player.index(" "):][18:], player[:player.index(" ")]
-                print(f"! left:   '{player: <16}', reason: '{reason}' @ {msgtime}")
+                stats["players"][player]["playtime"] += msgtime - stats["players"][player]["last"]
+                stats["players"][player]["online"] = False
+                print(f"! left:   '{player: <16}', reason: '{reason}' @ {msgtime} -> running count is {stats['players'][player]['playtime']}")
 
 print(stats)
