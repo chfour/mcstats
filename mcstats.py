@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import glob, sys, os.path, locale, re
+import glob, sys, os.path, re
 from datetime import datetime, date, time, timedelta
 
 root_dir = sys.argv[1]
@@ -47,4 +47,7 @@ for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int
                 stats["players"][player]["online"] = False
                 print(f"! left:   '{player: <16}', reason: '{reason}' @ {msgtime} -> running count is {stats['players'][player]['playtime']}")
 
-print(stats)
+#print(stats)
+print(f"Server:\n Total uptime: {stats['server']['total']}\nPlayers:")
+for p in stats["players"]:
+    print(f" {p: <16}: {stats['players'][p]['playtime']}")
