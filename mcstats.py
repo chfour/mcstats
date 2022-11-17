@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import glob, sys, os.path, re
-from datetime import datetime, timedelta
+import glob, sys, os.path, re, gzip
+from datetime import datetime, date, timedelta
+from math import inf
 
 root_dir = sys.argv[1]
 stats = {
@@ -13,13 +14,37 @@ stats = {
     "players": {}
 }
 
-for logfile in sorted(glob.iglob("*.log", root_dir=root_dir), key=lambda n: [int(i) for i in n[:-4].split("-")]):
-    filedate = datetime.strptime(logfile[:logfile.rindex("-")], "%Y-%m-%d")
+def _stripext(fname: str) -> str:
+    fname = os.path.basename(fname)
+    while fname.endswith(".gz") or fname.endswith(".log"):
+        fname = fname[:fname.rindex(".")]
 
+    return fname
+
+def _sortkey(fname: str) -> list:
+    fname = _stripext(fname)
+    if fname == "latest":
+        return [inf]
+    return [int(i) for i in fname.split("-")]
+
+for logfile in sorted(glob.iglob("*.log*", root_dir=root_dir), key=_sortkey):
     logfile = os.path.join(root_dir, logfile)
-    print(f"  opening {logfile} ({filedate.date()})", file=sys.stderr)
+    print(f"  opening {logfile}", file=sys.stderr)
 
-    with open(logfile) as f:
+    _fname = _stripext(logfile)
+    if _fname == "latest": # assume latest.log has correct timestamp
+        filedate = date.fromtimestamp(os.path.getctime(logfile))
+        print(f"  assuming latest.log has correct ctime {filedate}", file=sys.stderr)
+    else:
+        filedate = datetime.strptime(_fname[:_fname.rindex("-")], "%Y-%m-%d")
+
+    if logfile.endswith(".gz"):
+        print("  -> is gzip...", file=sys.stderr)
+        f = gzip.open(logfile, "rt")
+    else:
+        f = open(logfile, "rt")
+
+    with f:
         for line in f:
             line = line.strip()
             if not re.match(r"^\[\d\d:\d\d:\d\d\] \[", line): continue
