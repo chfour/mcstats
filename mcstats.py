@@ -124,7 +124,7 @@ for logfile in sorted(glob.iglob("*.log*", root_dir=root_dir), key=_sortkey):
                 
 
 #print(stats)
-print(f"Server:\n Total uptime: {stats['server']['total']}\nPlayers:")
+print(f"Server:\n Total uptime: {stats['server']['total']}\n Idle: {stats['server']['idle']}\nPlayers:")
 for p, s in sorted(stats["players"].items(), key=lambda p: p[1]["playtime"], reverse=True):
     print(f" {p: <16} {stats['players'][p]['playtime']} total playtime, deaths: {stats['players'][p]['deaths']}")
     print(" "*18+f"messages sent: {stats['players'][p]['messages']: >5}, commands issued: {stats['players'][p]['commands']: >5}")
