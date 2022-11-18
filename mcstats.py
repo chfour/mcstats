@@ -115,8 +115,12 @@ for logfile in sorted(glob.iglob("*.log*", root_dir=root_dir), key=_sortkey):
                     stats["players"][player]["advancements"] += 1
 
             # chatmsg
-            elif re.match(r"^\[Async Chat Thread - #\d+/INFO\]: <", line):
-                line = line[line.index(": <")+3:]
+            elif re.match(r"^\[Async Chat Thread - #\d+/INFO\]:( \[Not Secure\]){0,1} <", line):
+                line = line[line.index("]: ")+3:]
+                if line.startswith("[Not Secure] "):
+                    line = line[line.index("] <")+3:]
+                else:
+                    line = line[line.index(": <")+3:]
                 player = line[:line.index("> ")]
                 content = line[line.index("> ")+2:]
                 print(f"! {msgtime} : chatmsg: '{player: <16}', '{content}'", file=sys.stderr)
