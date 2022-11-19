@@ -142,12 +142,35 @@ for p in stats["players"]:
         stats["players"][p]["playtime"] += now - stats["players"][p]["last"]
 
 #print(stats)
-print(f"""Server:
- Total uptime: {stats['server']['total']}{' + running' if stats['server']['running'] else ''}
- Idle: {stats['server']['idle']}{' + idling' if stats['server']['isidle'] else ''}
+if "-fjson" in sys.argv:
+    import json
+    newstats = {
+        "server": {
+            "total_uptime": stats["server"]["total"].seconds,
+            "idle_time": stats["server"]["idle"].seconds,
+            "is_idle": stats["server"]["isidle"],
+            "running": stats["server"]["running"]
+        },
+        "players": {}
+    }
+    for p in stats["players"]:
+        newstats["players"][p] = {
+            "playtime": stats["players"][p]["playtime"].seconds,
+            "is_online": stats["players"][p]["online"],
+            "deaths": stats["players"][p]["deaths"],
+            "messages": stats["players"][p]["messages"],
+            "commands": stats["players"][p]["commands"],
+            "advancements": stats["players"][p]["advancements"]
+        }
+    json.dump(newstats, sys.stdout)
+    sys.stdout.write("\n")
+else:
+    print(f"""Server:
+  Total uptime: {stats['server']['total']}{' + running' if stats['server']['running'] else ''}
+  Idle: {stats['server']['idle']}{' + idling' if stats['server']['isidle'] else ''}
 Players:""")
-for p, s in sorted(stats["players"].items(), key=lambda p: p[1]["playtime"], reverse=True):
-    print(f"""  {p: <16}
+    for p, s in sorted(stats["players"].items(), key=lambda p: p[1]["playtime"], reverse=True):
+        print(f"""  {p: <16}
     total playtime: {stats['players'][p]['playtime']}{' + online' if stats['players'][p]['online'] else ''}
     deaths:{stats['players'][p]['deaths']: >7}, messages:{stats['players'][p]['messages']: >8}
     commands:{stats['players'][p]['commands']: >5}, advancements:{stats['players'][p]['advancements']: >4}""")
