@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import glob, sys, os.path, re, gzip
 from datetime import datetime, date, timedelta
-from math import inf
+import time
+from math import inf, floor
 
 root_dir = sys.argv[1]
 stats = {
@@ -64,6 +65,7 @@ for logfile in sorted(glob.iglob("*.log*", root_dir=root_dir), key=_sortkey):
                 elif line == "Closing Server":
                     stats["server"]["total"] += msgtime - stats["server"]["last"]
                     stats["server"]["idle"] += msgtime - stats["server"]["idlestart"]
+                    stats["server"]["last"] = None
                     print(f"! {msgtime} : stop -> running count is {stats['server']['total']}", file=sys.stderr)
                     print(f"* dump idle: server stop -> running count is {stats['server']['idle']}", file=sys.stderr)
 
@@ -80,6 +82,7 @@ for logfile in sorted(glob.iglob("*.log*", root_dir=root_dir), key=_sortkey):
                     stats["players"][player]["online"] = True
                     if len(list(filter(lambda p: p["online"], stats["players"].values()))) < 2:
                         stats["server"]["idle"] += msgtime - stats["server"]["idlestart"]
+                        stats["server"]["idlestart"] = None
                         print(f"* no longer idle: first player joined -> running count is {stats['server']['idle']}", file=sys.stderr)
 
                 # left
@@ -125,10 +128,17 @@ for logfile in sorted(glob.iglob("*.log*", root_dir=root_dir), key=_sortkey):
                 content = line[line.index("> ")+2:]
                 print(f"! {msgtime} : chatmsg: '{player: <16}', '{content}'", file=sys.stderr)
                 stats["players"][player]["messages"] += 1
-                
+
+stats["server"]["running"] = stats["server"]["last"] is not None
+now = datetime.fromtimestamp(floor(time.time()))
+if stats["server"]["running"]:
+    stats["server"]["total"] += now - stats["server"]["last"]
 
 #print(stats)
-print(f"Server:\n Total uptime: {stats['server']['total']}\n Idle: {stats['server']['idle']}\nPlayers:")
+print(f"""Server:
+ Total uptime: {stats['server']['total']}{' + running' if stats['server']['running'] else ''}
+ Idle: {stats['server']['idle']}
+Players:""")
 for p, s in sorted(stats["players"].items(), key=lambda p: p[1]["playtime"], reverse=True):
     print(f" {p: <16} {stats['players'][p]['playtime']} total playtime, deaths: {stats['players'][p]['deaths']}")
     print(" "*18+f"messages sent: {stats['players'][p]['messages']: >5}, commands issued: {stats['players'][p]['commands']: >5}")
