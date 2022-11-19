@@ -123,7 +123,7 @@ for logfile in sorted(glob.iglob("*.log*", root_dir=root_dir), key=_sortkey):
                 if line.startswith("[Not Secure] "):
                     line = line[line.index("] <")+3:]
                 else:
-                    line = line[line.index(": <")+3:]
+                    line = line[1:]
                 player = line[:line.index("> ")]
                 content = line[line.index("> ")+2:]
                 print(f"! {msgtime} : chatmsg: '{player: <16}', '{content}'", file=sys.stderr)
