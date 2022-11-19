@@ -136,12 +136,18 @@ if stats["server"]["running"]:
     stats["server"]["total"] += now - stats["server"]["last"]
 if stats["server"]["isidle"]:
     stats["server"]["idle"] += now - stats["server"]["idlestart"]
+
+for p in stats["players"]:
+    if stats["players"][p]["online"]:
+        stats["players"][p]["playtime"] += now - stats["players"][p]["last"]
+
 #print(stats)
 print(f"""Server:
  Total uptime: {stats['server']['total']}{' + running' if stats['server']['running'] else ''}
  Idle: {stats['server']['idle']}{' + idling' if stats['server']['isidle'] else ''}
 Players:""")
 for p, s in sorted(stats["players"].items(), key=lambda p: p[1]["playtime"], reverse=True):
-    print(f" {p: <16} {stats['players'][p]['playtime']} total playtime, deaths: {stats['players'][p]['deaths']}")
-    print(" "*18+f"messages sent: {stats['players'][p]['messages']: >5}, commands issued: {stats['players'][p]['commands']: >5}")
-    print(" "*18+f"advancements made: {stats['players'][p]['advancements']: >3}")
+    print(f"""  {p: <16}
+    total playtime: {stats['players'][p]['playtime']}{' + online' if stats['players'][p]['online'] else ''}
+    deaths:{stats['players'][p]['deaths']: >7}, messages:{stats['players'][p]['messages']: >8}
+    commands:{stats['players'][p]['commands']: >5}, advancements:{stats['players'][p]['advancements']: >4}""")
