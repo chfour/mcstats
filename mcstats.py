@@ -130,14 +130,16 @@ for logfile in sorted(glob.iglob("*.log*", root_dir=root_dir), key=_sortkey):
                 stats["players"][player]["messages"] += 1
 
 stats["server"]["running"] = stats["server"]["last"] is not None
+stats["server"]["isidle"] = stats["server"]["idlestart"] is not None
 now = datetime.fromtimestamp(floor(time.time()))
 if stats["server"]["running"]:
     stats["server"]["total"] += now - stats["server"]["last"]
-
+if stats["server"]["isidle"]:
+    stats["server"]["idle"] += now - stats["server"]["idlestart"]
 #print(stats)
 print(f"""Server:
  Total uptime: {stats['server']['total']}{' + running' if stats['server']['running'] else ''}
- Idle: {stats['server']['idle']}
+ Idle: {stats['server']['idle']}{' + idling' if stats['server']['isidle'] else ''}
 Players:""")
 for p, s in sorted(stats["players"].items(), key=lambda p: p[1]["playtime"], reverse=True):
     print(f" {p: <16} {stats['players'][p]['playtime']} total playtime, deaths: {stats['players'][p]['deaths']}")
